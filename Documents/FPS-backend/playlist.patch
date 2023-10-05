@@ -1,0 +1,236 @@
+Subject: [PATCH] playlist
+---
+Index: src/main/java/com/thoughtworks/fps/playlist/repository/PlaylistRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/thoughtworks/fps/playlist/repository/PlaylistRepository.java b/src/main/java/com/thoughtworks/fps/playlist/repository/PlaylistRepository.java
+--- a/src/main/java/com/thoughtworks/fps/playlist/repository/PlaylistRepository.java	(revision 66f33527aa519b9ff62e059460d20188a9c08c8d)
++++ b/src/main/java/com/thoughtworks/fps/playlist/repository/PlaylistRepository.java	(date 1694065088989)
+@@ -7,4 +7,6 @@
+ @Repository
+ public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
+ 
++
++
+ }
+Index: src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+--- a/src/main/resources/application.properties	(revision 66f33527aa519b9ff62e059460d20188a9c08c8d)
++++ b/src/main/resources/application.properties	(date 1694527838754)
+@@ -17,7 +17,7 @@
+ springdoc.api-docs.enabled=true
+ 
+ spring.jpa.hibernate.ddl-auto=update
+-spring.jpa.show-sql=true
++spring.jpa.show-sql=false
+ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+ spring.jpa.properties.hibernate.format_sql=true
+ 
+Index: src/main/java/com/thoughtworks/fps/playlist/controller/PlaylistController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/thoughtworks/fps/playlist/controller/PlaylistController.java b/src/main/java/com/thoughtworks/fps/playlist/controller/PlaylistController.java
+--- a/src/main/java/com/thoughtworks/fps/playlist/controller/PlaylistController.java	(revision 66f33527aa519b9ff62e059460d20188a9c08c8d)
++++ b/src/main/java/com/thoughtworks/fps/playlist/controller/PlaylistController.java	(date 1694112024708)
+@@ -26,6 +26,16 @@
+         }
+     }
+ 
++    @GetMapping("/{id}/playlist_videos")
++    public ResponseEntity<?> getAllVideosOfPlaylist(@PathVariable long id){
++        try {
++            return new ResponseEntity<>(playlistService.fetchVideos(id), HttpStatus.OK);
++        }
++        catch(Exception e) {
++            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
++        }
++    }
++
+     @PostMapping("/createPlaylist/userId/{userId}/name/{name}")
+     public ResponseEntity<?> create(@PathVariable long userId, @PathVariable String name) {
+         try {
+Index: src/main/java/com/thoughtworks/fps/DataSeeder.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/thoughtworks/fps/DataSeeder.java b/src/main/java/com/thoughtworks/fps/DataSeeder.java
+--- a/src/main/java/com/thoughtworks/fps/DataSeeder.java	(revision 66f33527aa519b9ff62e059460d20188a9c08c8d)
++++ b/src/main/java/com/thoughtworks/fps/DataSeeder.java	(date 1694625225575)
+@@ -8,12 +8,14 @@
+ import com.thoughtworks.fps.channel.repository.ChannelTagsRepository;
+ import com.thoughtworks.fps.channel.repository.MemberRequestRepository;
+ import com.thoughtworks.fps.channel.service.ChannelService;
++import com.thoughtworks.fps.playlist.DTO.PlaylistResponse;
+ import com.thoughtworks.fps.playlist.repository.PlaylistRepository;
+ import com.thoughtworks.fps.user.models.User;
+ import com.thoughtworks.fps.user.repository.UserRepository;
+ import com.thoughtworks.fps.user.service.UserService;
+ import com.thoughtworks.fps.video.models.Video;
+ import com.thoughtworks.fps.video.repository.VideoRepository;
++import com.thoughtworks.fps.playlist.models.Playlist;
+ import org.springframework.boot.CommandLineRunner;
+ import org.springframework.context.annotation.Bean;
+ import org.springframework.context.annotation.Configuration;
+@@ -21,9 +23,7 @@
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.nio.file.Paths;
+-import java.util.HashSet;
+-import java.util.List;
+-import java.util.Set;
++import java.util.*;
+ 
+ @Configuration
+ public class DataSeeder {
+@@ -188,6 +188,47 @@
+                 memberRequestRepository.save(memberRequestComm);
+                 MemberRequest memberRequestComm2 = new MemberRequest(user4, twinnoFestCommunity);
+                 memberRequestRepository.save(memberRequestComm2);
++
++                Playlist playlist1=new Playlist(user1,"Cooking");
++                Playlist playlist2=new Playlist(user2,"Emerging Technologies");
++                Playlist playlist3=new Playlist(user3,"Managing Taxes");
++                Playlist playlist4=new Playlist(user4,"OOPS");
++                Playlist playlist5=new Playlist(user5,"Inference");
++                playlistRepository.saveAll(List.of(playlist1,playlist2,playlist3,playlist4,playlist5));
++
++                Set<Video> videoSet1 = new HashSet<>();
++                videoSet1.add(video1);
++                videoSet1.add(video2);
++                playlist1.setParentPlaylist(playlist1);
++                playlist1.setVideos(videoSet1);
++                playlistRepository.save(playlist1);
++
++                Set<Video> videoSet2 = new HashSet<>();
++                videoSet2.add(video3);
++                videoSet2.add(video4);
++                playlist2.setParentPlaylist(playlist2);
++                playlist2.setVideos(videoSet2);
++                playlistRepository.save(playlist2);
++
++                Set<Video> videoSet3 = new HashSet<>();
++                videoSet3.add(video4);
++                videoSet3.add(video5);
++//                playlist3.setParentPlaylist(playlist3);
++                playlist3.setVideos(videoSet3);
++                playlistRepository.save(playlist3);
++
++                Set<Video> videoSet4 = new HashSet<>();
++                videoSet4.add(video6);
++                videoSet4.add(video7);
++                playlist4.setVideos(videoSet3);
++                playlistRepository.save(playlist4);
++
++                Set<Video> videoSet5 = new HashSet<>();
++                videoSet5.add(video8);
++                videoSet5.add(video9);
++                playlist5.setVideos(videoSet5);
++                playlistRepository.save(playlist5);
++
+             }
+         };
+     }
+Index: src/main/java/com/thoughtworks/fps/playlist/models/Playlist.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/thoughtworks/fps/playlist/models/Playlist.java b/src/main/java/com/thoughtworks/fps/playlist/models/Playlist.java
+--- a/src/main/java/com/thoughtworks/fps/playlist/models/Playlist.java	(revision 66f33527aa519b9ff62e059460d20188a9c08c8d)
++++ b/src/main/java/com/thoughtworks/fps/playlist/models/Playlist.java	(date 1694628090089)
+@@ -90,18 +90,28 @@
+     }
+ 
+     public void setParentPlaylist(Playlist parentPlaylist) {
++        System.out.println("-------inside parent playlist repo-------");
++        System.out.println(parentPlaylist.getParentPlaylist());
+         this.parentPlaylist = parentPlaylist;
++        System.out.println(parentPlaylist.getParentPlaylist());
++
+     }
+ 
+     public void setChildPlaylists(Set<Playlist> childPlaylists) {
++        System.out.println("-------inside child playlist set repo-------");
++
+         this.childPlaylists = childPlaylists;
+     }
+ 
+     public Playlist getParentPlaylist() {
++        System.out.println("-------inside parent playlist get repo-------");
++
+         return parentPlaylist;
+     }
+ 
+     public Set<Playlist> getChildPlaylists() {
++        System.out.println("-------inside child playlist get  repo-------");
++
+         return childPlaylists;
+     }
+ }
+Index: src/main/java/com/thoughtworks/fps/security/LoginController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/thoughtworks/fps/security/LoginController.java b/src/main/java/com/thoughtworks/fps/security/LoginController.java
+--- a/src/main/java/com/thoughtworks/fps/security/LoginController.java	(revision 66f33527aa519b9ff62e059460d20188a9c08c8d)
++++ b/src/main/java/com/thoughtworks/fps/security/LoginController.java	(date 1694628090096)
+@@ -17,6 +17,7 @@
+     FPSUserDetailsService fpsUserDetailsService;
+     @GetMapping(path = "/login")
+     public ResponseEntity<Object> helloFromBackend() {
++        System.out.println("inside login controller ");
+         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+         return new ResponseEntity<>(fpsUserDetailsService.getUserByUsername(authentication.getName()), HttpStatus.OK);
+     }
+Index: src/main/java/com/thoughtworks/fps/playlist/service/PlaylistService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/thoughtworks/fps/playlist/service/PlaylistService.java b/src/main/java/com/thoughtworks/fps/playlist/service/PlaylistService.java
+--- a/src/main/java/com/thoughtworks/fps/playlist/service/PlaylistService.java	(revision 66f33527aa519b9ff62e059460d20188a9c08c8d)
++++ b/src/main/java/com/thoughtworks/fps/playlist/service/PlaylistService.java	(date 1694113365753)
+@@ -80,6 +80,15 @@
+         return playlistResponse;
+     }
+ 
++    public Set<Video> fetchVideos(long id)throws Exception{
++        if(!playlistRepository.existsById(id)){
++            throw new Exception("Playlist Not Found");
++        }
++        Playlist playlist = playlistRepository.getReferenceById(id);
++        Set<Video> videos = playlist.getVideos();
++        return videos;
++    }
++
+     public Playlist update(Long id, String name, Long newParentId) throws Exception {
+         if(!playlistRepository.existsById(id)) throw new Exception("Playlist Not Found");
+         if(!playlistRepository.existsById(newParentId)) throw new Exception("Parent playlist Not Found");
+diff --git a/src/main/resources/db/migration/V2.4__AlterPlaylistTableToAddName.sql b/src/main/resources/db/migration/V1.16__AlterPlaylistTableToAddName.sql
+rename from src/main/resources/db/migration/V2.4__AlterPlaylistTableToAddName.sql
+rename to src/main/resources/db/migration/V1.16__AlterPlaylistTableToAddName.sql
+diff --git a/src/main/resources/db/migration/V2.5__UpdateChannelTable.sql b/src/main/resources/db/migration/V1.17__UpdateChannelTable.sql
+rename from src/main/resources/db/migration/V2.5__UpdateChannelTable.sql
+rename to src/main/resources/db/migration/V1.17__UpdateChannelTable.sql
+diff --git a/src/main/resources/db/migration/V2.2__UpdateVideoTable.sql b/src/main/resources/db/migration/V1.14__UpdateVideoTable.sql
+rename from src/main/resources/db/migration/V2.2__UpdateVideoTable.sql
+rename to src/main/resources/db/migration/V1.14__UpdateVideoTable.sql
+diff --git a/src/main/resources/db/migration/V2.3__AlterPlaylistTableToAddParentPlaylistId.sql b/src/main/resources/db/migration/V1.15__AlterPlaylistTableToAddParentPlaylistId.sql
+rename from src/main/resources/db/migration/V2.3__AlterPlaylistTableToAddParentPlaylistId.sql
+rename to src/main/resources/db/migration/V1.15__AlterPlaylistTableToAddParentPlaylistId.sql
+diff --git a/src/main/resources/db/migration/V2.0__UpdateVideoTable.sql b/src/main/resources/db/migration/V1.12__UpdateVideoTable.sql
+rename from src/main/resources/db/migration/V2.0__UpdateVideoTable.sql
+rename to src/main/resources/db/migration/V1.12__UpdateVideoTable.sql
+diff --git a/src/main/resources/db/migration/V2.1__CreatePlaylistTable.sql b/src/main/resources/db/migration/V1.13__CreatePlaylistTable.sql
+rename from src/main/resources/db/migration/V2.1__CreatePlaylistTable.sql
+rename to src/main/resources/db/migration/V1.13__CreatePlaylistTable.sql
